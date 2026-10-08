@@ -13,6 +13,24 @@ Extracción de Texto (OCR): Pipeline de preprocesamiento de imágenes basado en 
 
 Validación de Formato Nacional: Motor de filtrado mediante expresiones regulares (Regex) para aceptar estrictamente las nomenclaturas chilenas históricas (AA·1000) y actuales (BB·CC-12), reduciendo falsos positivos.
 
+Para ejecutar proyecto:
+
+# Crear el entorno 
+python -m venv venv
+
+# Activar el entorno 
+.\venv\Scripts\Activate.ps1
+
+# O si usas la consola tradicional
+venv\Scripts\activate.bat
+
+# instalar dependencias
+pip install --upgrade pip
+pip install -r requirements.txt
+
+# Soporte para GPU
+pip install torch torchvision torchaudio --index-url [https://download.pytorch.org/whl/cu121](https://download.pytorch.org/whl/cu121)
+
 🛠️ Stack Tecnológico
 Lenguaje: Python 3.10+
 
