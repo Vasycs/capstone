@@ -1,11 +1,11 @@
-Sistema de Reconocimiento de Patentes mediante Edge Computing
+# Sistema de Reconocimiento de Patentes mediante Edge Computing
 
 Este proyecto está enfocado en el desarrollo de un sistema de Reconocimiento Automático de Matrículas (ALPR - Automatic License Plate Recognition).
 El modelo está entrenado para identificar y validar los formatos de patentes vehiculares chilenas, diseñado para ser desplegado en entornos de Edge Computing (como NVIDIA Jetson o Raspberry Pi).
 
 El objetivo principal es automatizar el control de acceso vehicular en recintos privados (ej. condominios o estacionamientos), interceptando flujos de video de cámaras de seguridad (CCTV) para procesar la información en tiempo real sin depender de servidores en la nube.
 
--  Características Principales:
+##-  Características Principales:
   
 Detección en Tiempo Real: Utiliza modelos de la familia YOLO ajustados (fine-tuned) para localizar y recortar la ubicación exacta de las matrículas en distintas condiciones ambientales (luz de día, ruido nocturno, encandilamiento).
 
@@ -15,23 +15,23 @@ Validación de Formato Nacional: Motor de filtrado mediante expresiones regulare
 
 Para ejecutar proyecto:
 
-# Crear el entorno 
+* Crear el entorno 
 python -m venv venv
 
-# Activar el entorno 
+* Activar el entorno 
 .\venv\Scripts\Activate.ps1
 
-# O si usas la consola tradicional
+* O si usas la consola tradicional
 venv\Scripts\activate.bat
 
-# instalar dependencias
+* instalar dependencias
 pip install --upgrade pip
 pip install -r requirements.txt
 
-# Soporte para GPU
+* Soporte para GPU
 pip install torch torchvision torchaudio --index-url [https://download.pytorch.org/whl/cu121](https://download.pytorch.org/whl/cu121)
 
-🛠️ Stack Tecnológico
+Stack Tecnológico
 Lenguaje: Python 3.10+
 
 Visión por Computadora: OpenCV (cv2), imutils
