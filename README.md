@@ -15,20 +15,20 @@ Validación de Formato Nacional: Motor de filtrado mediante expresiones regulare
 
 Para ejecutar proyecto:
 
-* Crear el entorno 
+- Crear el entorno 
 python -m venv venv
 
-* Activar el entorno 
+- Activar el entorno 
 .\venv\Scripts\Activate.ps1
 
-* O si usas la consola tradicional
+- O si usas la consola tradicional
 venv\Scripts\activate.bat
 
-* instalar dependencias
+- instalar dependencias
 pip install --upgrade pip
 pip install -r requirements.txt
 
-* Soporte para GPU
+- Soporte para GPU
 pip install torch torchvision torchaudio --index-url [https://download.pytorch.org/whl/cu121](https://download.pytorch.org/whl/cu121)
 
 Stack Tecnológico
