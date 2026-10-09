@@ -1,0 +1,14 @@
+# Núcleo de Visión y Machine Learning
+ultralytics>=8.2.0         # Implementación oficial de YOLOv8/YOLOv11
+opencv-python>=4.9.0       # Manipulación de imágenes y captura de streams RTSP
+easyocr>=1.7.0             # Motor OCR basado en PyTorch, fácil de integrar
+imutils>=0.5.4             # Utilidades de OpenCV para rotación y redimensionado
+
+# Manejo de datos y métricas
+numpy>=1.24.0,<2.0.0       # Arrays numéricos para matrices de píxeles
+pandas>=2.1.0              # Estructuración de registros y metadatos
+scikit-learn>=1.3.0        # Métricas de evaluación (matrices de confusión, F1)
+
+# Soporte de inferencia
+torch>=2.2.0               # Backend de redes neuronales
+torchvision>=0.17.0
