@@ -29,10 +29,14 @@ pip install --upgrade pip
 
 pip install -r requirements.txt
 
-### Soporte para GPU:
-pip install torch torchvision torchaudio --index-url [https://download.pytorch.org/whl/cu121](https://download.pytorch.org/whl/cu121)
+pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cu126 (Soporte para GPU)
 
-## Stack Tecnológico
+### Ejecutar prueba de cam
+python main.py
+
+
+
+## Librerias
 Lenguaje: Python 3.10+
 
 Visión por Computadora: OpenCV (cv2), imutils
