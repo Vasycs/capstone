@@ -10,5 +10,5 @@ pandas>=2.1.0              # Estructuración de registros y metadatos
 scikit-learn>=1.3.0        # Métricas de evaluación (matrices de confusión, F1)
 
 # Soporte de inferencia
-torch>=2.2.0               # Backend de redes neuronales
-torchvision>=0.17.0
+#torch>=2.2.0               # Backend de redes neuronales
+#torchvision>=0.17.0
