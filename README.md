@@ -1,4 +1,4 @@
-# Sistema de Reconocimiento de Patentes mediante Edge Computing
+# Alpr Project: Sistema de Reconocimiento de Patentes mediante Edge Computing
 
 Este proyecto está enfocado en el desarrollo de un sistema de Reconocimiento Automático de Matrículas (ALPR - Automatic License Plate Recognition).
 El modelo está entrenado para identificar y validar los formatos de patentes vehiculares chilenas, diseñado para ser desplegado en entornos de Edge Computing (como NVIDIA Jetson o Raspberry Pi).
@@ -29,10 +29,14 @@ pip install --upgrade pip
 
 pip install -r requirements.txt
 
-### Soporte para GPU:
-pip install torch torchvision torchaudio --index-url [https://download.pytorch.org/whl/cu121](https://download.pytorch.org/whl/cu121)
+pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cu126 (Soporte para GPU)
 
-## Stack Tecnológico
+### Ejecutar prueba de cam
+python main.py
+
+
+
+## Librerias
 Lenguaje: Python 3.10+
 
 Visión por Computadora: OpenCV (cv2), imutils
