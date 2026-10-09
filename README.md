@@ -1,4 +1,4 @@
-# Sistema de Reconocimiento de Patentes mediante Edge Computing
+# Alpr Project: Sistema de Reconocimiento de Patentes mediante Edge Computing
 
 Este proyecto está enfocado en el desarrollo de un sistema de Reconocimiento Automático de Matrículas (ALPR - Automatic License Plate Recognition).
 El modelo está entrenado para identificar y validar los formatos de patentes vehiculares chilenas, diseñado para ser desplegado en entornos de Edge Computing (como NVIDIA Jetson o Raspberry Pi).
