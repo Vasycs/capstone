@@ -1,0 +1,30 @@
+# Entornos virtuales (contienen miles de archivos de librerías)
+venv/
+env/
+ENV/
+
+# Caché y archivos compilados de Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Directorios de datos e imágenes (superan el límite de tamaño de Git)
+data/raw/
+data/dataset/
+*.mp4
+*.avi
+
+# Pesos de los modelos y resultados de entrenamiento de YOLO
+models/*.pt
+models/*.onnx
+*.pt
+runs/
+
+# Archivos de configuración local de editores (VS Code, PyCharm)
+.vscode/
+.idea/
+
+# Archivos temporales de Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
