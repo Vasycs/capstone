@@ -18,8 +18,7 @@ data/dataset/
 models/*.pt
 models/*.onnx
 *.pt
-runs/
-
+r
 # Archivos de configuración local de editores (VS Code, PyCharm)
 .vscode/
 .idea/
