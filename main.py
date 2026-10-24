@@ -49,7 +49,7 @@ db_residentes = cargar_residentes(ruta_csv)
 model = YOLO('models/best.pt') 
 reader = easyocr.Reader(['es', 'en'], gpu=usar_gpu)
 
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(1)
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
 
