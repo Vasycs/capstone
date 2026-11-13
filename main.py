@@ -49,7 +49,7 @@ db_residentes = cargar_residentes(ruta_csv)
 model = YOLO('models/best.pt') 
 reader = easyocr.Reader(['es', 'en'], gpu=usar_gpu)
 
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
 
@@ -81,7 +81,7 @@ while True:
 
     if frame_count % procesar_cada_x_frames == 0:
         nuevas_cajas = []
-        resultados = model(frame, stream=True, verbose=False, device=dispositivo, half=usar_gpu, conf=0.35)
+        resultados = model(frame, stream=True, verbose=False, device=dispositivo, conf=0.35)
 
         for r in resultados:
             for box in r.boxes:
