@@ -6,27 +6,21 @@ import time
 import math
 import torch
 from ultralytics import YOLO
-from src.database import cargar_residentes
+from src.database import cargar_residentes, registrar_acceso
 
 def limpiar_y_validar_patente(texto_crudo):
+    # 1. Pasar todo a mayuscula
     texto_limpio = re.sub(r'[^A-Za-z0-9]', '', texto_crudo).upper()
-    posibles = re.findall(r'[A-Z0-9]{6}', texto_limpio)
     
-    for candidato in posibles:
-        # Formato actual (BBCC12)
-        letras_act = candidato[:4].replace('0', 'O').replace('1', 'I').replace('8', 'B').replace('5', 'S')
-        nums_act = candidato[4:].replace('O', '0').replace('Q', '0').replace('I', '1').replace('B', '8').replace('S', '5')
-        candidato_actual = letras_act + nums_act
-        if re.match(r'^[A-Z]{4}[0-9]{2}$', candidato_actual):
-            return candidato_actual
-
-        # Formato antiguo (AA1000)
-        letras_ant = candidato[:2].replace('0', 'O').replace('1', 'I').replace('8', 'B').replace('5', 'S')
-        nums_ant = candidato[2:].replace('O', '0').replace('Q', '0').replace('I', '1').replace('B', '8').replace('S', '5')
-        candidato_antiguo = letras_ant + nums_ant
-        if re.match(r'^[A-Z]{2}[0-9]{4}$', candidato_antiguo):
-            return candidato_antiguo
-
+    # 2. Eliminar la palabra "CHILE" 
+    palabras_ignorar = ['CHILE', 'CHIL', 'HILE', 'CHLE', 'CH1LE', 'CHIIE']
+    for palabra in palabras_ignorar:
+        texto_limpio = texto_limpio.replace(palabra, '')
+        
+    # 3. largo  (5 a 7 caracteres)
+    if 5 <= len(texto_limpio) <= 7:
+        return texto_limpio
+        
     return None
 
 def mejorar_imagen_para_ocr(recorte_bgr):
@@ -37,36 +31,39 @@ def mejorar_imagen_para_ocr(recorte_bgr):
     clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
     return clahe.apply(gris)
 
-# --- 1. INICIALIZACIÓN ---
+#  INICIALIZACIÓN 
 usar_gpu = torch.cuda.is_available()
 dispositivo = 0 if usar_gpu else 'cpu'
 print(f"[HARDWARE] Inferencia activa en: {torch.cuda.get_device_name(0) if usar_gpu else 'CPU'}")
 
 ruta_csv = os.path.join("data", "residentes.csv")
+ruta_historial = os.path.join("data", "historial_accesos.csv")
 db_residentes = cargar_residentes(ruta_csv)
 
-# modelo entrenado 
 model = YOLO('models/best.pt') 
-reader = easyocr.Reader(['es', 'en'], gpu=usar_gpu)
+reader = easyocr.Reader(['es', 'en'], gpu=usar_gpu, quantize=True)
 
 cap = cv2.VideoCapture(0)
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
 
-# --- VARIABLES DE CONTROL Y MEMORIA ESPACIAL ---
+# VARIABLES DE CONTROL, MEMORIA ESPACIAL Y REGISTRO 
 frame_count = 0
 procesar_cada_x_frames = 4
 ultimas_cajas = []
 cache_patentes = {}
 
-# Lista de objetos recordados en pantalla: [{'cx': int, 'cy': int, 'mensaje': str, 'color': tuple, 'tiempo': float}]
 objetos_activos = []
-RADIO_SEGUIMIENTO_PX = 130  # Distancia máxima en píxeles para considerar que es la misma patente moviéndose
-TIEMPO_MEMORIA_SEG = 2.0    # Cuántos segundos recuerda la patente aunque se tape o desenfoque
+RADIO_SEGUIMIENTO_PX = 130
+TIEMPO_MEMORIA_SEG = 2.0
+
+# Control para no repetir registros de la misma patente en el Excel
+ultimos_accesos_guardados = {}
+TIEMPO_ESPERA_REGISTRO_SEG = 60  # Segundos mínimos antes de volver a anotar al mismo vehículo
 
 prev_time = time.time()
 
-print("\n--- SISTEMA ALPR CON MEMORIA ESPACIAL ACTIVO (Presiona 'q' para salir) ---")
+print("\n--- SISTEMA ALPR CON REGISTRO DE ACCESOS ACTIVO (Presiona 'q' para salir) ---")
 
 while True:
     ret, frame = cap.read()
@@ -76,7 +73,6 @@ while True:
     frame_count += 1
     ahora = time.time()
 
-    # Limpiar de la memoria las patentes que ya salieron de la cámara hace más de 2 segundos
     objetos_activos = [obj for obj in objetos_activos if (ahora - obj['tiempo']) < TIEMPO_MEMORIA_SEG]
 
     if frame_count % procesar_cada_x_frames == 0:
@@ -86,12 +82,9 @@ while True:
         for r in resultados:
             for box in r.boxes:
                 x1, y1, x2, y2 = map(int, box.xyxy[0])
-                
-                # Calcular el punto central (X, Y) de la patente detectada
                 cx = (x1 + x2) // 2
                 cy = (y1 + y2) // 2
 
-                # 1. ¿ESTÁ CERCA DE UNA PATENTE QUE YA LEÍMOS HACE UN INSTANTE?
                 objeto_conocido = None
                 menor_distancia = RADIO_SEGUIMIENTO_PX
 
@@ -101,15 +94,12 @@ while True:
                         menor_distancia = distancia
                         objeto_conocido = obj
 
-                # 2. SI : Actualizamos su posición y MANTIENE EL TEXTO sin gastar OCR
                 if objeto_conocido is not None:
                     objeto_conocido['cx'] = cx
                     objeto_conocido['cy'] = cy
                     objeto_conocido['tiempo'] = ahora
                     mensaje = objeto_conocido['mensaje']
                     color = objeto_conocido['color']
-
-                # 3. SI ES NUEVA EN PANTALLA: Ejecutamos OCR para averiguar qué dice
                 else:
                     mensaje = "Analizando..."
                     color = (255, 165, 0)
@@ -126,19 +116,25 @@ while True:
                             patente_valida = limpiar_y_validar_patente(texto_unido)
 
                             if patente_valida:
+                                datos_residente = db_residentes.get(patente_valida)
+
                                 if patente_valida in cache_patentes:
                                     mensaje, color = cache_patentes[patente_valida]
                                 else:
-                                    if patente_valida in db_residentes:
-                                        datos = db_residentes[patente_valida]
-                                        mensaje = f"AUTORIZADO: {patente_valida} | {datos.get('nombre_residente')} (Depto {datos.get('departamento')})"
+                                    if datos_residente:
+                                        mensaje = f"AUTORIZADO: {patente_valida} | {datos_residente.get('nombre_residente')} (Depto {datos_residente.get('departamento')})"
                                         color = (0, 255, 0)
                                     else:
                                         mensaje = f"DENEGADO: {patente_valida} (No Registrado)"
                                         color = (0, 0, 255)
                                     cache_patentes[patente_valida] = (mensaje, color)
 
-                                # Guardamos este objeto en la memoria espacial para seguirlo cuando se mueva
+                                # --- GUARDAR EN HISTORIAL CSV SI PASÓ EL TIEMPO DE ESPERA ---
+                                ultimo_tiempo = ultimos_accesos_guardados.get(patente_valida, 0)
+                                if (ahora - ultimo_tiempo) > TIEMPO_ESPERA_REGISTRO_SEG:
+                                    registrar_acceso(ruta_historial, patente_valida, datos_residente)
+                                    ultimos_accesos_guardados[patente_valida] = ahora
+
                                 objetos_activos.append({
                                     'cx': cx,
                                     'cy': cy,

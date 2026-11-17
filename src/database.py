@@ -1,5 +1,6 @@
 import csv
 import os
+from datetime import datetime
 
 def cargar_residentes(ruta_archivo):
     """
@@ -31,7 +32,7 @@ def cargar_residentes(ruta_archivo):
                 print(f"[INFO] Columnas detectadas en el archivo: {lector.fieldnames}")
             
             for fila in lector:
-                # 1. Extraer la patente (ahora seguro en minúscula y sin espacios)
+                # 1. Extraer la patente 
                 patente_cruda = fila.get('patente', '')
                 
                 if patente_cruda:
@@ -50,20 +51,46 @@ def cargar_residentes(ruta_archivo):
         print(f"[ERROR] Problema al leer la base de datos: {e}")
         return {}
 
-# --- BLOQUE DE PRUEBA INDIVIDUAL ---
-if __name__ == "__main__":
-    # Calcula la ruta exacta hacia data/residentes.csv sin importar desde dónde ejecutes el script
-    directorio_actual = os.path.dirname(os.path.abspath(__file__))
-    ruta_csv = os.path.join(directorio_actual, "..", "data", "residentes.csv")
+def registrar_acceso(ruta_historial, patente, datos_residente=None):
+    """
+    Registra la entrada de un vehículo con fecha y hora en un archivo CSV
+    listo para abrirse como tabla en Excel.
+    """
+    archivo_existe = os.path.exists(ruta_historial)
     
-    db = cargar_residentes(ruta_csv)
-    
-    # Simulemos que la cámara acaba de leer una patente:
-    patente_leida_por_camara = "BB-CC-12"
-    patente_limpia = patente_leida_por_camara.replace("-", "").strip().upper()
-    
-    if patente_limpia in db:
-        datos = db[patente_limpia]
-        print(f"\n¡ACCESO PERMITIDO! Residente: {datos.get('nombre_residente')}, Depto: {datos.get('departamento')}")
+    ahora = datetime.now()
+    fecha_str = ahora.strftime("%Y-%m-%d")
+    hora_str = ahora.strftime("%H:%M:%S")
+
+    if datos_residente:
+        estado = "AUTORIZADO"
+        nombre = datos_residente.get('nombre_residente', 'Residente')
+        depto = datos_residente.get('departamento', 'S/N')
+        estacionamiento = datos_residente.get('estacionamiento', 'S/N')
     else:
-        print(f"\nACCESO DENEGADO. La patente '{patente_limpia}' no está en la lista: {list(db.keys())}")
+        estado = "DENEGADO"
+        nombre = "Visita / No Registrado"
+        depto = "-"
+        estacionamiento = "-"
+
+    try:
+        # 'a' agrega una fila al final sin borrar el historial previo
+        with open(ruta_historial, mode='a', newline='', encoding='utf-8-sig') as archivo:
+            escritor = csv.writer(archivo, delimiter=';')
+            
+            # Si el archivo es nuevo, escribimos los títulos de las columnas primero
+            if not archivo_existe:
+                escritor.writerow([
+                    'Fecha', 'Hora', 'Patente', 'Estado Acceso', 
+                    'Nombre Residente', 'Departamento', 'Estacionamiento'
+                ])
+            
+            escritor.writerow([fecha_str, hora_str, patente, estado, nombre, depto, estacionamiento])
+            
+        print(f"[HISTORIAL] Registrado: {fecha_str} {hora_str} | {patente} ({estado})")
+
+    except PermissionError:
+        print(f"[AVISO] No se pudo guardar en el historial porque el archivo está abierto en Excel.")
+    except Exception as e:
+        print(f"[ERROR] Problema al guardar en el historial: {e}")
+
